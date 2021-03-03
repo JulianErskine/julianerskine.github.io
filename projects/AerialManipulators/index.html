@@ -10,9 +10,9 @@
   <div class="container">
     <div class="blurb">
       <center>
-        <h2> Julian Erskine</h2>
+        <h1> Julian Erskine</h1>
         <p>
-          PhD Student Specializing in Aerial Robotics and Multi-Agent Systems
+					I am a PhD student interested in all aspects of robotics reseach, and specializing in aerial robotics and multi-robot systems. 
         </p>
       </center>
     </div><!-- /.blurb -->
@@ -35,6 +35,7 @@
     <div class="blurb">
       <nav>
         <center>
+          <h2> My Projects </h2> 
           <ul>
             <li><a href="../index.html">Overview</a></li>
             <li><a href="../Multirotors/index.html">Multirotors</a></li>
@@ -44,9 +45,9 @@
           </ul>
         </center>
       </nav>
+      <hr>
 
-
-      <h3>Aerial Cable-Suspended Systems</h3>
+      <h5>Aerial Cable-Suspended Systems</h5>
 
         The objective of this research project was to
         <ol>
@@ -59,20 +60,41 @@
         This work was successfully completed through the end of my Master thesis and the first several month of my
         PhD, leading to publications of both the theoretical and experimental results. The drone system I implemented
         was then extended to the majority of the drone-related projects in the laboratory.
-  
+        <br>
+      <br>
+
         <div style="text-align:center;">
-          <video width="60%" autoplay muted>
+          <video width="75%" autoplay muted controls>
             <source src="../videos/wrench_Analysis.mp4" type="video/mp4">
-            Your browser does not support the video tag.
+            Your browser does not support the video. You can watch it it <a href="https://youtu.be/UipyUgF82ZY">here</a> 
           </video>
         </div>
-  
   
         <h4> Funding</h4>
         This work was funded by the Ecole Centrale de Nantes through a M.Sc research scholarship.
   
-      <h3>The Flying Parallel Robot<h3>
+      <h5>The Flying Parallel Robot</h5>
+      The flying parallel robot (FPR) is composed of a platform connected to quadrotors by passive articulated rigid structure. It was primarily developped during the PhD theses of Damien Six and Shiyu Liu, but suffered from the same drawback as most multi-UAV parallel robots. It requires:
+      <ol>
+        <li> Highly precise high-frequency 6DOF localization in a global frame of reference. This generally constrains these robots to lab setting with motion capture equipment. </li> 
+        <li> Reliable communication between the quadrotors and a centralized controller with access to the afformentioned pose data. </li> 
+      </ol> 
+      Combining my work on decentralized swarms with our existing expertise on multi-UAV parallel robots, we developped a method for this robot (and generally applicable to many others of simalar architecture) to be controlled using only local measurements taken onboard each of the UAVs. Furthermore it can make use of but does not necessarily require inter-UAV communication, making it robust to communication loses.
+      <br>
+      <br>
 
+      <div style="text-align:center;">
+        <video width="75%" autoplay muted controls>
+          <source src="../videos/FPR_RAL_final.mp4" type="video/mp4">
+          Your browser does not support the video. You can watch it <a href="https://youtu.be/s1on54vG_c8">here</a>
+          <href>
+        </video>
+      </div>
+
+      This work had successful experiments, is currently undergoing peer review, and further extensions to it are planned for the future. 
+
+      <h4> Funding</h4>
+        This work was funded by the Ecole Centrale de Nantes, by the AtlanSTIC 2020 project RAPID, and my ("insert Shiyu funding") .
 
     </div><!-- /.blurb -->
   </div><!-- /.container -->
