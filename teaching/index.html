@@ -7,16 +7,10 @@
 </head>
 
 <body>
-  <div class="container">
-    <div class="blurb">
-      <center>
-        <h1> Julian Erskine</h1>
-        <p>
-					I am a PhD student interested in all aspects of robotics reseach, and specializing in aerial robotics and multi-robot systems. 
-        </p>
-      </center>
-    </div><!-- /.blurb -->
-  </div><!-- /.container -->
+
+  <div class="header">
+    <div w3-include-html="../header.html"></div>
+  </div>
 
   <nav>
     <center>
@@ -29,11 +23,14 @@
         <li><a href="index.html"><span class="CurrentPageHighlight">Teaching</span></a></li>
       </ul>
     </center>
-    <hr style="width:100%;height:2px;color:#d5d5d5;"> 
+    <hr style="width:100%;height:2px;color:#d5d5d5;">
   </nav>
   <div class="container">
     <div class="blurb">
-      <center><h2>Teaching - PAGE TODO</h2></center><hr>
+      <center>
+        <h2>Teaching - PAGE TODO</h2>
+      </center>
+      <hr>
       <h5>Labs</h5>
       <h4> Modelling and control of serial manipulators (English)</h4>
       Text
@@ -50,21 +47,53 @@
       text
       <h4> Dynamic bearing formation control through second order visual servoing </h4>
       text
-      <h4> Development d'une systeme de detection base vision pour le commande en formation d'une flotte de drone  </h4>
+      <h4> Development d'une systeme de detection base vision pour le commande en formation d'une flotte de drone </h4>
       text
 
     </div><!-- /.blurb -->
   </div><!-- /.container -->
 
-  <br />
+
+  <br>
   <footer>
-    <ul>
-      <li><a href="mailto:julian.NotMyRealEmail.Erskine@gmail.com">Email</a></li>
-      <li><a href="https://www.linkedin.com/in/julian-erskine/">LinkedIn</a></li>
-      <li><a href="https://www.researchgate.net/profile/Julian_Erskine">ResearchGate</a></li>
-      <li><a href="https://github.com/JulianErskine">Github</a></li>
-    </ul>
+    <div w3-include-html="../footer.html"></div>
   </footer>
 </body>
+
+
+<script>
+  function includeHTML() {
+    var z, i, elmnt, file, xhttp;
+    /* Loop through a collection of all HTML elements: */
+    z = document.getElementsByTagName("*");
+    for (i = 0; i < z.length; i++) {
+      elmnt = z[i];
+      /*search for elements with a certain atrribute:*/
+      file = elmnt.getAttribute("w3-include-html");
+      if (file) {
+        /* Make an HTTP request using the attribute value as the file name: */
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+          if (this.readyState == 4) {
+            if (this.status == 200) { elmnt.innerHTML = this.responseText; }
+            if (this.status == 404) { elmnt.innerHTML = "Page not found."; }
+            /* Remove the attribute, and call this function once more: */
+            elmnt.removeAttribute("w3-include-html");
+            includeHTML();
+          }
+        }
+        xhttp.open("GET", file, true);
+        xhttp.send();
+        /* Exit the function: */
+        return;
+      }
+    }
+  }
+</script>
+
+<script>
+  includeHTML();
+</script>
+
 
 </html>
