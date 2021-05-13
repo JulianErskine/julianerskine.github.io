@@ -7,44 +7,35 @@
 </head>
 
 <body>
-  <div class="container">
-    <div class="blurb">
+  <div class="header">
+    <div w3-include-html="../../header.html"></div>
+    <nav>
+      <hr>
       <center>
-        <h1> Julian Erskine</h1>
-        <p>
-					I am a PhD student interested in all aspects of robotics reseach, and specializing in aerial robotics and multi-robot systems. 
-        </p>
+        <ul>
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../about/index.html">About</a></li>
+          <li><a href="../index.html"><span class="CurrentPageHighlight">Projects</span></a></li>
+          <li><a href="../../cv/index.html">CV</a></li>
+          <li><a href="../../publications/index.html">Publications</a></li>
+          <li><a href="../../teaching/index.html">Teaching</a></li>
+        </ul>
+        <ul>
+          <li><a href="../index.html">Overview</a></li>
+          <li><a href="../Multirotors/index.html">Multirotors</a></li>
+          <li><a href="../Swarms/index.html">Swarms</a></li>
+          <li><a href="../AerialManipulators/index.html">Aerial Manipulators</a></li>
+          <li><a href="index.html"><span class="CurrentPageHighlight">Cable Robots</span></a></li>
+        </ul>
       </center>
-    </div><!-- /.blurb -->
-  </div><!-- /.container -->
+      <hr>
+    </nav>
+  </div>
 
-  <nav>
-    <center>
-      <ul>
-        <li><a href="../../index.html">Home</a></li>
-        <li><a href="../../about/index.html">About</a></li>
-        <li><a href="../index.html"><span class="CurrentPageHighlight">Projects</span></a></li>
-        <li><a href="../../cv/index.html">CV</a></li>
-        <li><a href="../../publications/index.html">Publications</a></li>
-        <li><a href="../../teaching/index.html">Teaching</a></li>
-      </ul>
-    </center>
-    <hr style="width:100%;height:2px;color:#d5d5d5">
-  </nav>
+
   <div class="container">
     <div class="content">
-      <nav>
-        <center>
-          <ul>
-            <li><a href="../index.html">Overview</a></li>
-            <li><a href="../Multirotors/index.html">Multirotors</a></li>
-            <li><a href="../Swarms/index.html">Swarms</a></li>
-            <li><a href="../AerialManipulators/index.html">Aerial Manipulators</a></li>
-            <li><a href="index.html"><span class="CurrentPageHighlight">Cable Robots</span></a></li>
-          </ul>
-        </center>
-      </nav>
-      <hr>
+
       Cable Driving Parallel Robots were my first real research experience. My first year masters research project with Dr. Stephane Caro was intended to assist with the design of a CDPR platform being designed for the lab.
 
     <h3> Optimal Design </h3> As cables are only able to pull and cannot push, there are inherent limitations to CDPRs which are unlike those of classical robots. 
@@ -68,13 +59,43 @@
 
   <br>
   <footer>
-    <ul>
-      <li><a href="mailto:julian.NotMyRealEmail.Erskine@gmail.com">Email</a></li>
-      <li><a href="https://www.linkedin.com/in/julian-erskine/">LinkedIn</a></li>
-      <li><a href="https://www.researchgate.net/profile/Julian_Erskine">ResearchGate</a></li>
-      <li><a href="https://github.com/JulianErskine">Github</a></li>
-    </ul>
+    <div w3-include-html="../../footer.html"></div> 
   </footer>
-</body>
+  </body>
+  
+  
+  <script>
+  function includeHTML() {
+    var z, i, elmnt, file, xhttp;
+    /* Loop through a collection of all HTML elements: */
+    z = document.getElementsByTagName("*");
+    for (i = 0; i < z.length; i++) {
+      elmnt = z[i];
+      /*search for elements with a certain atrribute:*/
+      file = elmnt.getAttribute("w3-include-html");
+      if (file) {
+        /* Make an HTTP request using the attribute value as the file name: */
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4) {
+            if (this.status == 200) {elmnt.innerHTML = this.responseText;}
+            if (this.status == 404) {elmnt.innerHTML = "Page not found.";}
+            /* Remove the attribute, and call this function once more: */
+            elmnt.removeAttribute("w3-include-html");
+            includeHTML();
+          }
+        }
+        xhttp.open("GET", file, true);
+        xhttp.send();
+        /* Exit the function: */
+        return;
+      }
+    }
+  }
+  </script> 
+  
+  <script>
+  includeHTML();
+  </script>
 
 </html>
