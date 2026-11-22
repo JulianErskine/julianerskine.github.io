@@ -1,0 +1,20 @@
+---
+layout: base.njk
+title: Projects
+---
+<h1>Projects</h1>
+
+<p>A running list of things I've built. Add a new one by dropping a markdown
+file in <code>src/projects/</code> — no HTML to copy.</p>
+
+<ul class="project-list">
+  {%- for project in collections.projects %}
+  <li class="project-card">
+    <h2><a href="{{ project.url }}">{{ project.data.title }}</a></h2>
+    <p>{{ project.data.summary }}</p>
+    {%- if project.data.tags %}
+    <p class="tags">{{ project.data.tags | join(", ") }}</p>
+    {%- endif %}
+  </li>
+  {%- endfor %}
+</ul>

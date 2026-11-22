@@ -1,0 +1,23 @@
+---
+layout: base.njk
+title: Backend Demo
+---
+<h1>Backend demo</h1>
+
+<p>
+  This static page calls a tiny <a href="https://github.com/JulianErskine/site-api">FastAPI backend</a>
+  running on my home server, reached over a
+  <a href="https://tailscale.com/kb/1223/funnel">Tailscale Funnel</a> — no
+  server-side rendering here, just a browser <code>fetch()</code> to another
+  origin.
+</p>
+
+<form id="echo-form">
+  <label>Message <input type="text" id="echo-input" value="hello from the browser"></label>
+  <button type="submit">Send</button>
+</form>
+<p id="echo-status"></p>
+<pre id="echo-result"></pre>
+
+<script>window.SITE_API_BASE = {{ site.apiBase | dump | safe }};</script>
+<script src="/js/backend-demo.js" defer></script>

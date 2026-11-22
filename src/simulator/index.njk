@@ -1,0 +1,18 @@
+---
+layout: base.njk
+title: Simulator
+---
+<h1>Simulator</h1>
+
+<p>
+  A tiny lander: gravity pulls down, thrust costs fuel. Land softly on the
+  green pad to win.
+</p>
+
+<canvas id="sim-canvas" width="640" height="400" aria-label="Lander simulator"></canvas>
+<p class="sim-controls">
+  <strong>Controls:</strong> Arrow keys / WASD to thrust, Space to restart.
+</p>
+<p id="sim-stats" class="sim-stats"></p>
+
+<script src="/js/simulator.js" defer></script>

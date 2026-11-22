@@ -1,0 +1,17 @@
+{
+  "name": "Julian Erskine",
+  "nav": [
+    { "text": "Home", "url": "/" },
+    { "text": "Projects", "url": "/projects/" },
+    { "text": "Simulator", "url": "/simulator/" },
+    { "text": "Backend Demo", "url": "/backend-demo/" },
+    { "text": "CV", "url": "/cv/" }
+  ],
+  "apiBase": "",
+  "social": [
+    { "text": "Email", "url": "mailto:julian.b.erskine@gmail.com" },
+    { "text": "LinkedIn", "url": "https://www.linkedin.com/in/julian-erskine/" },
+    { "text": "GitHub", "url": "https://github.com/JulianErskine" },
+    { "text": "YouTube", "url": "https://www.youtube.com/channel/UCGSnyb4Q7adLQGrHsp0vMgg" }
+  ]
+}

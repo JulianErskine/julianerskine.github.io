@@ -4,19 +4,64 @@ on:
   push:
     branches: [master]
   pull_request:
+  repository_dispatch:
+    types: [cv-released]
+
+permissions:
+  contents: read
 
 jobs:
+  # Runs on every push and PR. make build / make lint run in Docker
+  # (node:20-alpine) via the Makefile — see Makefile for the actual commands.
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      # make lint / make build run everything in Docker containers
-      # (node:20-alpine, jekyll/jekyll) — see Makefile. No node/ruby setup
-      # needed on the runner itself, just make + docker, which ubuntu-latest
-      # already has.
-      - name: Lint HTML pages
+      - uses: actions/checkout@v6
+      - name: Build + lint site
         run: make lint
 
-      - name: Build site with Jekyll
+  # Runs after push to master, or when the CV repo's release workflow
+  # fires a repository_dispatch (see julian-CV/.github/workflows/release.yml)
+  # after publishing a new CV build. Requires repo Settings > Pages > Source
+  # = "GitHub Actions" (one-time manual change; Eleventy isn't a generator
+  # Pages builds itself).
+  deploy:
+    if: github.ref == 'refs/heads/master' || github.event_name == 'repository_dispatch'
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+      - name: Fetch latest CV PDFs
+        # julian-CV is a private repo, so this needs auth even for release
+        # assets. CV_REPO_TOKEN is a PAT with read access to it (repo scope),
+        # stored as a secret on this repo — not the same token julian-CV
+        # uses to dispatch *to* this repo.
+        env:
+          GH_TOKEN: ${{ secrets.CV_REPO_TOKEN }}
+        run: |
+          mkdir -p src/cv
+          gh release download --repo JulianErskine/julian-CV \
+            --pattern 'current-cv-*.pdf' --dir src/cv --clobber
+          mv src/cv/current-cv-en.pdf src/cv/public_cv-en.pdf
+          mv src/cv/current-cv-fr.pdf src/cv/public_cv-fr.pdf
+      - name: Build site
         run: make build
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
