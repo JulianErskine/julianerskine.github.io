@@ -10,7 +10,27 @@ title: CV
   a rebuild of this site that fetches the latest PDF.
 </p>
 
-<p>
-  <a href="/cv/public_cv-en.pdf">Download CV (English, PDF)</a><br>
-  <a href="/cv/public_cv-fr.pdf">Download CV (French, PDF)</a>
-</p>
+<div class="cv-download">
+  <iframe class="cv-preview" name="cv-preview" src="/cv/public_cv-en.pdf#navpanes=0&amp;view=FitH" title="CV preview"></iframe>
+  <div class="cv-meta">
+    {%- if cvRelease %}
+    <p class="cv-updated">
+      Last updated<br>
+      <time datetime="{{ cvRelease.publishedAt }}">{{ cvRelease.publishedAt.slice(0, 10) }}</time>
+      ({{ cvRelease.tagName }})
+    </p>
+    {%- endif %}
+    <ul>
+      <li>
+        English<br>
+        <a href="/cv/public_cv-en.pdf#navpanes=0&amp;view=FitH" target="cv-preview">Preview</a> ·
+        <a href="/cv/public_cv-en.pdf" download>Download</a>
+      </li>
+      <li>
+        Français<br>
+        <a href="/cv/public_cv-fr.pdf#navpanes=0&amp;view=FitH" target="cv-preview">Aperçu</a> ·
+        <a href="/cv/public_cv-fr.pdf" download>Télécharger</a>
+      </li>
+    </ul>
+  </div>
+</div>

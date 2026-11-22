@@ -1,2 +1,5 @@
 _site
 node_modules
+# Written by CI at deploy time (see .github/workflows/ci.yml).
+src/_data/cvRelease.json
+src/cv/*.pdf
