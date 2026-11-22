@@ -77,15 +77,19 @@ The CV is maintained in a separate private repo, `JulianErskine/julian-CV`
 Flow:
 
 1. Pushing a `v*` tag there runs `julian-CV/.github/workflows/release.yml`:
-   builds `current-cv-en.pdf`/`current-cv-fr.pdf`, publishes them as GitHub
-   Release assets, then fires a `repository_dispatch` (`cv-released`) at
-   this repo.
+   builds `current-cv-{en,fr}.pdf` plus phone-less
+   `current-cv-{en,fr}-nophone.pdf`, publishes them all as GitHub Release
+   assets, then fires a `repository_dispatch` (`cv-released`) at this repo.
 2. This repo's `deploy` job (`.github/workflows/ci.yml`) reacts to that
-   dispatch (or a normal push to `master`): downloads the latest release's
-   PDFs via `gh release download` into `src/cv/`, renamed to
-   `public_cv-en.pdf`/`public_cv-fr.pdf`, then builds and deploys.
+   dispatch (or a normal push to `master`): resolves the latest release tag,
+   writes its `tagName`/`publishedAt` to `src/_data/cvRelease.json`, and
+   downloads only that release's `*-nophone` PDFs via `gh release download`
+   into `src/cv/`, renamed to `public_cv-en.pdf`/`public_cv-fr.pdf`, then
+   builds and deploys. The full-contact PDFs are never published on the site.
 3. `.eleventy.js` passthrough-copies `src/cv/*.pdf`; `src/cv/index.njk`
-   links to them by that fixed filename.
+   links to them by that fixed filename, embeds one in an `<iframe>` preview
+   (the Preview/Aperçu links retarget it, no JS), and shows the
+   `cvRelease` date/tag as "Last updated" when that data file exists.
 
 Two secrets this depends on, both in **this** repo's Settings > Secrets:
 - `CV_REPO_TOKEN`: a PAT with read access to `julian-CV` (it's private, so
@@ -94,9 +98,10 @@ Two secrets this depends on, both in **this** repo's Settings > Secrets:
 - (In `julian-CV`'s secrets, not here) `SITE_DISPATCH_TOKEN`: a PAT with
   `dispatches` access to this (public) repo, used by its release workflow.
 
-The PDFs are never committed here — always fetched fresh at deploy time.
-Local `make build`/`make serve` won't have them (the links 404 locally);
-that's expected, not a bug.
+The PDFs and `cvRelease.json` are never committed here (both gitignored) —
+always fetched fresh at deploy time. Local `make build`/`make serve` won't
+have them (preview and links 404 locally, no "Last updated" line); that's
+expected, not a bug.
 
 ## Checks before finishing
 

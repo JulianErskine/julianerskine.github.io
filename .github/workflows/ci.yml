@@ -45,15 +45,24 @@ jobs:
         # julian-CV is a private repo, so this needs auth even for release
         # assets. CV_REPO_TOKEN is a PAT with read access to it (repo scope),
         # stored as a secret on this repo — not the same token julian-CV
-        # uses to dispatch *to* this repo.
+        # uses to dispatch *to* this repo. Only the phone-less
+        # (*-nophone) builds are published here; the release also carries
+        # the full-contact current-cv-{en,fr}.pdf, which stay private.
         env:
           GH_TOKEN: ${{ secrets.CV_REPO_TOKEN }}
         run: |
           mkdir -p src/cv
-          gh release download --repo JulianErskine/julian-CV \
-            --pattern 'current-cv-*.pdf' --dir src/cv --clobber
-          mv src/cv/current-cv-en.pdf src/cv/public_cv-en.pdf
-          mv src/cv/current-cv-fr.pdf src/cv/public_cv-fr.pdf
+          # Pin the tag once so the metadata and the PDFs come from the same
+          # release. cvRelease.json feeds the "last updated" date on /cv/.
+          tag=$(gh release view --repo JulianErskine/julian-CV --json tagName -q .tagName)
+          gh release view "$tag" --repo JulianErskine/julian-CV \
+            --json tagName,publishedAt > src/_data/cvRelease.json
+          gh release download "$tag" --repo JulianErskine/julian-CV \
+            --pattern 'current-cv-en-nophone.pdf' \
+            --pattern 'current-cv-fr-nophone.pdf' \
+            --dir src/cv --clobber
+          mv src/cv/current-cv-en-nophone.pdf src/cv/public_cv-en.pdf
+          mv src/cv/current-cv-fr-nophone.pdf src/cv/public_cv-fr.pdf
       - name: Build site
         run: make build
       - name: Configure Pages
