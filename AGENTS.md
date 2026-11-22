@@ -24,6 +24,12 @@ anything from it is ever needed.
   check that first.
 - Local build/lint/serve all run in Docker (`node:20-alpine`), no local Node
   install required. See the Makefile.
+- If `deploy` fails with `actions/deploy-pages`: `Error: Multiple artifacts
+  named "github-pages" were unexpectedly found` — don't click "Re-run failed
+  jobs". `upload-pages-artifact` doesn't clean up a previous attempt's
+  artifact, so re-running the job uploads a second one with the same name
+  and `deploy-pages` can't pick between them. Push a new commit instead (even
+  an empty one) to get a clean run with no leftover artifacts.
 
 ## Structure
 
