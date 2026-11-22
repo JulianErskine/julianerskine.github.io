@@ -81,15 +81,14 @@ The CV is maintained in a separate private repo, `JulianErskine/julian-CV`
 Flow:
 
 1. Pushing a `v*` tag there runs `julian-CV/.github/workflows/release.yml`:
-   builds `current-cv-{en,fr}.pdf` plus phone-less
-   `current-cv-{en,fr}-nophone.pdf`, publishes them all as GitHub Release
-   assets, then fires a `repository_dispatch` (`cv-released`) at this repo.
+   publishes `erskine-cv-{en,fr}-public.pdf` (among others) as GitHub
+   Release assets, then fires a `repository_dispatch` (`cv-released`) at
+   this repo.
 2. This repo's `build` job (`.github/workflows/ci.yml`) reacts to that
    dispatch (or a normal push to `master`): resolves the latest release tag,
    writes its `tagName`/`publishedAt` to `src/_data/cvRelease.json`, and
-   downloads only that release's `*-nophone` PDFs via `gh release download`
-   into `src/cv/`, renamed to `public_cv-en.pdf`/`public_cv-fr.pdf`, then
-   builds and deploys. The full-contact PDFs are never published on the site.
+   downloads `erskine-cv-{en,fr}-public.pdf` into `src/cv/`, renamed to
+   `public_cv-en.pdf`/`public_cv-fr.pdf`, then builds and deploys.
 3. `.eleventy.js` passthrough-copies `src/cv/*.pdf`; `src/cv/index.njk`
    links to them by that fixed filename, embeds one in an `<iframe>` preview
    (the Preview/Aperçu links retarget it, no JS), and shows the
