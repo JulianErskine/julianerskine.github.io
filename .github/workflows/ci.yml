@@ -25,20 +25,19 @@ jobs:
   # after publishing a new CV build. Requires repo Settings > Pages > Source
   # = "GitHub Actions" (one-time manual change; Eleventy isn't a generator
   # Pages builds itself).
-  deploy:
+  #
+  # Upload and deploy are deliberately separate jobs: with both in one job,
+  # deploy-pages' artifact lookup can race the just-finalized upload and
+  # find 0 artifacts (actions/deploy-pages#451), and re-running that job
+  # uploads a second "github-pages" artifact. Split, a deploy failure can be
+  # retried with "Re-run failed jobs" against the one existing artifact.
+  build:
     if: github.ref == 'refs/heads/master' || github.event_name == 'repository_dispatch'
     needs: check
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    concurrency:
-      group: pages
-      cancel-in-progress: false
+      pages: read
     steps:
       - uses: actions/checkout@v6
       - name: Fetch latest CV PDFs
@@ -71,6 +70,21 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

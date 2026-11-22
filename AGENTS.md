@@ -17,19 +17,23 @@ anything from it is ever needed.
   a generator Pages builds natively). The site is built and deployed by
   `.github/workflows/ci.yml`, on push to `master` and on a
   `repository_dispatch` (`cv-released`) fired by the `julian-CV` repo's
-  release workflow, via `actions/upload-pages-artifact` + `actions/deploy-pages`.
+  release workflow. The `build` job fetches the CV, builds, and runs
+  `actions/upload-pages-artifact`; a separate `deploy` job runs only
+  `actions/deploy-pages`.
 - This requires the repo's **Settings > Pages > Source** to be set to
   "GitHub Actions" (not "Deploy from a branch"). That's a one-time manual
   setting in the GitHub UI — if the live site isn't updating after a push,
   check that first.
 - Local build/lint/serve all run in Docker (`node:20-alpine`), no local Node
   install required. See the Makefile.
-- If `deploy` fails with `actions/deploy-pages`: `Error: Multiple artifacts
-  named "github-pages" were unexpectedly found` — don't click "Re-run failed
-  jobs". `upload-pages-artifact` doesn't clean up a previous attempt's
-  artifact, so re-running the job uploads a second one with the same name
-  and `deploy-pages` can't pick between them. Push a new commit instead (even
-  an empty one) to get a clean run with no leftover artifacts.
+- Keep upload and deploy in separate jobs. In one job, `deploy-pages` can
+  list artifacts before the just-finalized upload is visible and fail with
+  `No artifacts named "github-pages" were found` (actions/deploy-pages#451),
+  and re-running that combined job uploads a second artifact, failing with
+  `Multiple artifacts named "github-pages"`. With the split, a failed
+  `deploy` job can safely be retried with "Re-run failed jobs" (the `build`
+  job and its single artifact are reused). If `build` itself has to be
+  re-run, push a new commit instead (even an empty one).
 
 ## Structure
 
@@ -80,7 +84,7 @@ Flow:
    builds `current-cv-{en,fr}.pdf` plus phone-less
    `current-cv-{en,fr}-nophone.pdf`, publishes them all as GitHub Release
    assets, then fires a `repository_dispatch` (`cv-released`) at this repo.
-2. This repo's `deploy` job (`.github/workflows/ci.yml`) reacts to that
+2. This repo's `build` job (`.github/workflows/ci.yml`) reacts to that
    dispatch (or a normal push to `master`): resolves the latest release tag,
    writes its `tagName`/`publishedAt` to `src/_data/cvRelease.json`, and
    downloads only that release's `*-nophone` PDFs via `gh release download`
