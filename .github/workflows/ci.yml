@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # make lint / make build run everything in Docker containers
+      # (node:20-alpine, jekyll/jekyll) — see Makefile. No node/ruby setup
+      # needed on the runner itself, just make + docker, which ubuntu-latest
+      # already has.
+      - name: Lint HTML pages
+        run: make lint
+
+      - name: Build site with Jekyll
+        run: make build
