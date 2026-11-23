@@ -26,6 +26,10 @@ Everything runs through Docker, so no local Node install is required:
 | `make lint` | Builds the site, then lints the generated HTML with `htmlhint` (same check CI runs) |
 | `make clean` | Removes `_site/` and `node_modules/` |
 
+`build`, `serve` and `lint` run `npm ci` first. Besides Eleventy that installs
+[three.js](https://threejs.org/), which the `/simulator/` page loads as plain
+ES modules: Eleventy copies it into `_site/js/vendor/three/`, no bundler.
+
 "Deployment" itself is just `git push` to `master` — GitHub Actions builds
 and publishes it automatically; there's no separate deploy command. See
 `AGENTS.md` for the project structure/conventions in detail, and

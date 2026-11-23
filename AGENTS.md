@@ -47,10 +47,23 @@ src/projects/index.njk          -> listing page, reads collections.projects
 src/projects/*.md               -> one file per project (front matter: title,
                                     summary, tags, date); adding a project is
                                     just adding a file here, nothing else
-src/simulator/index.njk + src/js/simulator.js
-                                 -> small interactive canvas demo (lander
-                                    game); first of presumably more "fun
-                                    little simulator" pages
+src/simulator/index.njk         -> lander game page; import map for three.js
+src/js/lander/sim.js            -> the game: world, state, physics. No DOM,
+                                    no rendering; plays on a 2D plane;
+                                    `reset(seed)` builds a whole environment
+src/js/lander/rng.js            -> seeded PRNG shared by sim and visuals
+src/js/lander/autopilot.js      -> PID autopilot: reads the sim, returns the
+                                    same {left, right, up} input as the keys
+src/js/lander/plots.js          -> canvas 2D time-series plots of a round;
+                                    sample while flying, freeze when it ends,
+                                    clear on restart
+src/js/lander/visuals/          -> three.js view of the sim: camera framing
+                                    the plane (view.js), 3D terrain built
+                                    around the sim's ground line (terrain.js),
+                                    sky/Earth, lander model, pad, effects;
+                                    scene.js wires them up
+src/js/lander/main.js           -> entry: input, seed controls, fixed-step
+                                    sim loop, HUD
 src/cv/index.njk                -> links to the CV PDFs; the files themselves
                                     are fetched at deploy time, not committed
                                     (see "CV integration" below)
@@ -70,9 +83,24 @@ src/404.njk                      -> custom 404 page (permalink: /404.html)
   newest-first by `date`. Don't hand-edit the listing page for this.
 - Site-wide nav/social links live in `src/_data/site.json`, not hardcoded in
   templates.
-- Keep using plain Eleventy + vanilla JS/canvas for interactive demos unless
-  a specific demo genuinely needs a framework — don't add React/etc. "just in
-  case."
+- Keep using plain Eleventy + vanilla JS for interactive demos unless a
+  specific demo genuinely needs a library — don't add React/etc. "just in
+  case." The lander uses three.js (an npm dependency, `three` in
+  package.json): `.eleventy.js` passthrough-copies its ES module build and
+  the few addons used into `/js/vendor/three/`, and the page's import map
+  points `three` / `three/addons/` there. No bundler. Using another addon
+  means adding it (and anything it imports) to that copy list.
+- Lander: gameplay lives only in `sim.js`, in the plane's own units (x right,
+  y down, px). The visuals read it and never feed back; anything purely
+  visual (particles, debris, terrain beyond the ground line) belongs in
+  `visuals/`. The view stays locked to the plane: the camera looks straight
+  at z = 0 and the plane maps to the canvas exactly as the old 2D game did.
+- Reproducibility: everything a round starts from (ground, pad, start pose
+  and drift) comes from the seed via `rng.js`, never `Math.random`, and the
+  sim only ever advances in fixed `STEP`s (main.js accumulates frame time).
+  Same seed + same pilot = identical round, whatever the frame rate. Keep
+  it that way: visuals may use `Math.random` and frame dt (scenery is
+  seeded too, effects aren't), the sim and autopilots may not.
 
 ## CV integration
 

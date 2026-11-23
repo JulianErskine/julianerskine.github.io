@@ -5,14 +5,50 @@ title: Simulator
 <h1>Simulator</h1>
 
 <p>
-  A tiny lander: gravity pulls down, thrust costs fuel. Land softly on the
-  green pad to win.
+  A tiny lunar lander. The main engine pushes along the craft's axis; the
+  side (RCS) thrusters only rotate it, so to move sideways you tilt and burn.
+  Touch down on the pad slowly, upright, and without spinning.
 </p>
 
-<canvas id="sim-canvas" width="640" height="400" aria-label="Lander simulator"></canvas>
+<div class="sim-stage">
+  <canvas id="sim-canvas" width="640" height="400" aria-label="Lander simulator"></canvas>
+  <p id="sim-message" class="sim-message" role="status" hidden></p>
+</div>
+<div class="sim-toolbar">
+  <div class="sim-toggle" id="sim-pilot" role="group" aria-label="Pilot">
+    <button type="button" data-value="manual" aria-pressed="true">Manual</button>
+    <button type="button" data-value="pid" aria-pressed="false">PID autopilot</button>
+  </div>
+  <div class="sim-toggle" id="sim-env" role="group" aria-label="Environment">
+    <button type="button" data-value="random" aria-pressed="true">Random</button>
+    <button type="button" data-value="fixed" aria-pressed="false">Reproducible</button>
+  </div>
+  <label class="sim-seed">Seed
+    <input id="sim-seed" type="number" min="0" max="4294967295" step="1" inputmode="numeric">
+  </label>
+</div>
 <p class="sim-controls">
-  <strong>Controls:</strong> Arrow keys / WASD to thrust, Space to restart.
+  <strong>Controls:</strong> Up / W main engine, Left / Right or A / D side
+  thrusters, Space to restart. In PID mode, cascaded PID loops fly it
+  instead: position to velocity to thrust and tilt, with an attitude loop on
+  the side thrusters, all through the same on/off engines.
+</p>
+<p class="sim-controls">
+  <strong>Environment:</strong> the seed sets the terrain, pad, and starting
+  position and drift. Random picks a new seed each restart and shows it;
+  Reproducible restarts with the seed in the box, so the same seed and the
+  same pilot fly the same round. Entering a seed switches to Reproducible
+  and starts it.
 </p>
 <p id="sim-stats" class="sim-stats"></p>
+<div id="sim-plots" class="sim-plots"></div>
 
-<script src="/js/simulator.js" defer></script>
+<script type="importmap">
+  {
+    "imports": {
+      "three": "/js/vendor/three/three.module.js",
+      "three/addons/": "/js/vendor/three/addons/"
+    }
+  }
+</script>
+<script type="module" src="/js/lander/main.js"></script>
