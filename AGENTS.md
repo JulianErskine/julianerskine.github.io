@@ -1,155 +1,87 @@
 # AGENTS.md
 
-Guidance for AI coding agents working in this repo. Read this before making changes.
+Rules and gotchas for AI coding agents working in this repo. Read this before
+making changes. It deliberately doesn't describe the code: module details
+live in each file's header comment, and an area's architecture lives in a
+`README.md` next to its code (see "Where docs go").
 
 ## What this is
 
 Julian Erskine's personal site, source for `https://julianerskine.github.io/`.
-Built with [Eleventy](https://www.11ty.dev/) (11ty) — Markdown/Nunjucks content,
+Built with [Eleventy](https://www.11ty.dev/) (11ty): Markdown/Nunjucks content,
 no client framework. Content is intentionally a scaffold with placeholder
-entries (projects, bio, CV) for now; the old hand-written-HTML version of this
-site is gone from the working tree but fully recoverable from git history if
-anything from it is ever needed.
+entries (projects, bio, CV) for now; the old hand-written-HTML site is gone
+from the working tree but recoverable from git history.
 
-## Hosting model (important, different from before)
+## Hosting and deploy
 
-- GitHub Pages' built-in Jekyll build is **not** used anymore (Eleventy isn't
-  a generator Pages builds natively). The site is built and deployed by
-  `.github/workflows/ci.yml`, on push to `master` and on a
-  `repository_dispatch` (`cv-released`) fired by the `julian-CV` repo's
-  release workflow. The `build` job fetches the CV, builds, and runs
-  `actions/upload-pages-artifact`; a separate `deploy` job runs only
-  `actions/deploy-pages`.
-- This requires the repo's **Settings > Pages > Source** to be set to
-  "GitHub Actions" (not "Deploy from a branch"). That's a one-time manual
-  setting in the GitHub UI — if the live site isn't updating after a push,
-  check that first.
-- Local build/lint/serve all run in Docker (`node:20-alpine`), no local Node
-  install required. See the Makefile.
+- GitHub Pages' built-in Jekyll build is **not** used. `.github/workflows/ci.yml`
+  builds and deploys, on push to `master` and on a `repository_dispatch`
+  (`cv-released`) from the `julian-CV` repo. This needs the repo's
+  **Settings > Pages > Source** set to "GitHub Actions", a one-time manual
+  setting. If the live site isn't updating after a push, check that first.
 - Keep upload and deploy in separate jobs. In one job, `deploy-pages` can
   list artifacts before the just-finalized upload is visible and fail with
   `No artifacts named "github-pages" were found` (actions/deploy-pages#451),
   and re-running that combined job uploads a second artifact, failing with
   `Multiple artifacts named "github-pages"`. With the split, a failed
-  `deploy` job can safely be retried with "Re-run failed jobs" (the `build`
-  job and its single artifact are reused). If `build` itself has to be
-  re-run, push a new commit instead (even an empty one).
-
-## Structure
-
-```
-package.json, .eleventy.js      -> Eleventy config: input src/, output _site/,
-                                    passthrough copies, projects collection
-src/_includes/base.njk          -> the one shared layout (header/nav/footer)
-src/_data/site.json             -> site name, nav links, social links
-src/index.njk                   -> home/about page
-src/projects/index.njk          -> listing page, reads collections.projects
-src/projects/*.md               -> one file per project (front matter: title,
-                                    summary, tags, date); adding a project is
-                                    just adding a file here, nothing else
-src/simulator/index.njk         -> lander game page; import map for three.js
-src/js/lander/sim.js            -> the game: world, state, physics. No DOM,
-                                    no rendering; plays on a 2D plane;
-                                    `reset(seed)` builds a whole environment
-src/js/lander/rng.js            -> seeded PRNG shared by sim and visuals
-src/js/lander/autopilot.js      -> PID autopilot: reads the sim, returns the
-                                    same {left, right, up} input as the keys
-src/js/lander/plots.js          -> canvas 2D time-series plots of a round;
-                                    sample while flying, freeze when it ends,
-                                    clear on restart
-src/js/lander/visuals/          -> three.js view of the sim: camera framing
-                                    the plane (view.js), 3D terrain built
-                                    around the sim's ground line (terrain.js),
-                                    sky/Earth, lander model, pad, effects;
-                                    scene.js wires them up
-src/js/lander/main.js           -> entry: input, seed controls, fixed-step
-                                    sim loop, HUD
-src/cv/index.njk                -> links to the CV PDFs; the files themselves
-                                    are fetched at deploy time, not committed
-                                    (see "CV integration" below)
-src/css/style.css                -> single shared stylesheet
-src/images/                      -> static images (passthrough-copied)
-src/404.njk                      -> custom 404 page (permalink: /404.html)
-```
+  `deploy` job can safely be retried with "Re-run failed jobs". If `build`
+  itself has to be re-run, push a new commit instead (even an empty one).
+- The CV PDFs (`src/cv/*.pdf`) and `src/_data/cvRelease.json` are fetched at
+  deploy time and gitignored. Never commit them. Locally they're missing:
+  the `/cv/` preview and links 404 and there's no "Last updated" line. That's
+  expected, not a bug. The pipeline and its secrets are described in
+  README.md under "CV integration".
+- Build, lint and serve all run in Docker (`node:20-alpine`) via the
+  Makefile; no local Node install.
 
 ## Conventions
 
 - New page: a `.njk` (or `.md`) file under `src/` with front matter
-  `layout: base.njk` and a `title`. Eleventy derives the URL from the file
-  path (`src/foo/index.njk` -> `/foo/`).
+  `layout: base.njk` and a `title`. Eleventy derives the URL from the path
+  (`src/foo/index.njk` -> `/foo/`).
 - New project: add `src/projects/<slug>.md` with front matter `title`,
-  `summary`, `tags` (list), `date`. It's picked up automatically by the
-  `projects` collection (`.eleventy.js`) and shown on `/projects/`, sorted
-  newest-first by `date`. Don't hand-edit the listing page for this.
-- Site-wide nav/social links live in `src/_data/site.json`, not hardcoded in
+  `summary`, `tags` (list), `date`. The `projects` collection
+  (`.eleventy.js`) picks it up and lists it on `/projects/`, newest first.
+  Don't hand-edit the listing page.
+- Site-wide nav and social links live in `src/_data/site.json`, not in
   templates.
-- Keep using plain Eleventy + vanilla JS for interactive demos unless a
-  specific demo genuinely needs a library — don't add React/etc. "just in
-  case." The lander uses three.js (an npm dependency, `three` in
-  package.json): `.eleventy.js` passthrough-copies its ES module build and
-  the few addons used into `/js/vendor/three/`, and the page's import map
-  points `three` / `three/addons/` there. No bundler. Using another addon
-  means adding it (and anything it imports) to that copy list.
-- Lander: gameplay lives only in `sim.js`, in the plane's own units (x right,
-  y down, px). The visuals read it and never feed back; anything purely
-  visual (particles, debris, terrain beyond the ground line) belongs in
-  `visuals/`. The view stays locked to the plane: the camera looks straight
-  at z = 0 and the plane maps to the canvas exactly as the old 2D game did.
-- Reproducibility: everything a round starts from (ground, pad, start pose
-  and drift) comes from the seed via `rng.js`, never `Math.random`, and the
-  sim only ever advances in fixed `STEP`s (main.js accumulates frame time).
-  Same seed + same pilot = identical round, whatever the frame rate. Keep
-  it that way: visuals may use `Math.random` and frame dt (scenery is
-  seeded too, effects aren't), the sim and autopilots may not.
+- Plain Eleventy and vanilla JS for interactive demos. Add a library only
+  when a demo genuinely needs one; don't add React and the like "just in
+  case". No bundler: scripts under `src/js/` are served as written, as ES
+  modules.
+- three.js (used by the lander) is an npm dependency. `.eleventy.js` copies
+  its ES module build and the few add-ons in use into `/js/vendor/three/`,
+  and the page's import map points `three` and `three/addons/` there. Using
+  another add-on means adding it, and anything it imports, to that copy
+  list.
+- Lander (`/simulator/`, code in `src/js/lander/`): read
+  `src/js/lander/README.md` before changing it. Its "Rules that span modules"
+  are binding: gameplay only in `sim.js`, visuals never feed back, and
+  seeded, fixed-step simulation so rounds stay reproducible.
 
-## CV integration
+## Where docs go
 
-The CV is maintained in a separate private repo, `JulianErskine/julian-CV`
-(LaTeX, built via its own Docker/Make setup — not this repo's concern).
-Flow:
-
-1. Pushing a `v*` tag there runs `julian-CV/.github/workflows/release.yml`:
-   publishes `erskine-cv-{en,fr}-public.pdf` (among others) as GitHub
-   Release assets, then fires a `repository_dispatch` (`cv-released`) at
-   this repo.
-2. This repo's `build` job (`.github/workflows/ci.yml`) reacts to that
-   dispatch (or a normal push to `master`): resolves the latest release tag,
-   writes its `tagName`/`publishedAt` to `src/_data/cvRelease.json`, and
-   downloads `erskine-cv-{en,fr}-public.pdf` into `src/cv/`, renamed to
-   `public_cv-en.pdf`/`public_cv-fr.pdf`, then builds and deploys.
-3. `.eleventy.js` passthrough-copies `src/cv/*.pdf`; `src/cv/index.njk`
-   links to them by that fixed filename, embeds one in an `<iframe>` preview
-   (the Preview/Aperçu links retarget it, no JS), and shows the
-   `cvRelease` date/tag as "Last updated" when that data file exists.
-
-Two secrets this depends on, both in **this** repo's Settings > Secrets:
-- `CV_REPO_TOKEN`: a PAT with read access to `julian-CV` (it's private, so
-  even its release assets need auth to download — plain unauthenticated
-  `curl`/`actions/download-artifact` will 404).
-- (In `julian-CV`'s secrets, not here) `SITE_DISPATCH_TOKEN`: a PAT with
-  `dispatches` access to this (public) repo, used by its release workflow.
-
-The PDFs and `cvRelease.json` are never committed here (both gitignored) —
-always fetched fresh at deploy time. Local `make build`/`make serve` won't
-have them (preview and links 404 locally, no "Last updated" line); that's
-expected, not a bug.
+- A module's purpose and its non-obvious details: its header comment.
+- How an area's modules fit together, and rules that span them: a
+  `README.md` in that area's code folder (e.g. `src/js/lander/README.md`).
+  `.eleventyignore` keeps `src/**/README.md` from becoming a page, and
+  `src/js/` is copied to the site as `*.js` only, so these never ship.
+- How to build, run, deploy, and operate the site, for humans: `README.md`.
+- This file: only rules and gotchas an agent would otherwise get wrong.
 
 ## Checks before finishing
 
-- `make lint` builds the site and lints the generated HTML with `htmlhint`
-  (Docker, no local Node needed). This is also what CI's `check` job runs.
-- For visual/behavioral changes (especially the simulator), build and look:
-  `make build && (cd _site && python3 -m http.server 8080)`, then open
-  `http://localhost:8080/...` in a real browser — don't just trust that the
-  build succeeded.
+- `make lint` builds the site and lints the generated HTML with `htmlhint`.
+  CI's `check` job runs the same thing.
+- For visual or behavioral changes (especially the simulator), look at the
+  result in a browser: `make serve`, then `http://localhost:8080/...`.
+  Don't just trust that the build succeeded.
 
 ## Keep README.md in sync
 
-`README.md` is the human-facing quickstart; it must always reflect how to
-build, lint, serve, and deploy the site locally — currently the `make build`
-/ `make serve` / `make lint` / `make clean` targets and the "push to `master`
-= deploy via GitHub Actions" model. Whenever you change the Makefile, CI
-workflow, Docker images/commands, or the hosting/build model, update
-README.md's "Local build & deployment" section in the same change. Don't
-leave it describing tooling that no longer exists or omitting tooling that
-does.
+`README.md` is the human-facing guide. It must always say how to build,
+lint, serve and deploy the site (the `make` targets, and "push to `master`
+deploys via GitHub Actions") and how the CV pipeline works. Whenever you
+change the Makefile, the CI workflow, Docker images or commands, the
+hosting/build model, or the CV flow, update README.md in the same change.
