@@ -18,6 +18,7 @@ title: Simulator
   <div class="sim-toggle" id="sim-pilot" role="group" aria-label="Pilot">
     <button type="button" data-value="manual" aria-pressed="true">Manual</button>
     <button type="button" data-value="pid" aria-pressed="false">PID autopilot</button>
+    <button type="button" data-value="mpc" aria-pressed="false">MPC autopilot</button>
   </div>
   <div class="sim-toggle" id="sim-env" role="group" aria-label="Environment">
     <button type="button" data-value="random" aria-pressed="true">Random</button>
@@ -31,7 +32,11 @@ title: Simulator
   <strong>Controls:</strong> Up / W main engine, Left / Right or A / D side
   thrusters, Space to restart. In PID mode, cascaded PID loops fly it
   instead: position to velocity to thrust and tilt, with an attitude loop on
-  the side thrusters, all through the same on/off engines.
+  the side thrusters. In MPC mode, a nonlinear model predictive controller
+  (generated with <a href="https://docs.acados.org/">acados</a>, compiled to
+  WebAssembly) re-plans the next four seconds a hundred times a second,
+  steering over the terrain under its planned path. Both fly through the same
+  on/off engines as you do.
 </p>
 <p class="sim-controls">
   <strong>Environment:</strong> the seed sets the terrain, pad, and starting

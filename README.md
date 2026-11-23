@@ -23,10 +23,12 @@ Everything runs through Docker, so no local Node install is required:
 |---|---|
 | `make build` | Builds the site with Eleventy into `_site/` |
 | `make serve` | Serves the site locally at http://localhost:8080, rebuilding on file changes |
-| `make lint` | Builds the site, then lints the generated HTML with `htmlhint` (same check CI runs) |
+| `make lint` | Builds the site, then lints the generated HTML with `htmlhint` (CI runs this) |
+| `make test` | Runs the test suite in `test/` (CI runs this too): the simulator's physics and rules, the autopilots, the MPC's wasm, the 3D terrain's guarantees, and that the built site contains everything its pages load |
 | `make clean` | Removes `_site/` and `node_modules/` |
+| `make mpc` | Regenerates the simulator's MPC autopilot with acados and recompiles it to WebAssembly ([details](tools/lander-mpc/README.md)). Only needed after changing it; the output is committed |
 
-`build`, `serve` and `lint` run `npm ci` first. Besides Eleventy that installs
+`build`, `serve`, `lint` and `test` run `npm ci` first. Besides Eleventy that installs
 [three.js](https://threejs.org/), which the `/simulator/` page loads as plain
 ES modules: Eleventy copies it into `_site/js/vendor/three/`, no bundler.
 
@@ -45,8 +47,10 @@ and publishes it automatically; there's no separate deploy command. See
 | `src/projects/` | Projects listing and one Markdown file per project |
 | `src/cv/index.njk` | CV page (the PDFs arrive at deploy time; see below) |
 | `src/simulator/index.njk` + `src/js/lander/` | The lunar lander simulator; [its README](src/js/lander/README.md) explains how it works |
+| `tools/lander-mpc/` | acados + Emscripten toolchain for the simulator's MPC autopilot (`make mpc`) |
 | `src/backend-demo/index.njk` + `src/js/backend-demo.js` | Page that `fetch()`es the separate [site-api](https://github.com/JulianErskine/site-api) backend |
 | `src/css/style.css` | The one stylesheet |
+| `test/` | The test suite (`make test`), one `*.test.mjs` per area |
 
 ## Adding content
 

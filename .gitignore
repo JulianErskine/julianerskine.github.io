@@ -3,3 +3,6 @@ node_modules
 # Written by CI at deploy time (see .github/workflows/ci.yml).
 src/_data/cvRelease.json
 src/cv/*.pdf
+# Generated acados C for the lander's MPC (`make mpc`); only its wasm build
+# in src/js/lander/mpc/ is committed.
+tools/lander-mpc/build/
