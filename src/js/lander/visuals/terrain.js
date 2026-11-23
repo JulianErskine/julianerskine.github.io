@@ -213,6 +213,14 @@ export function createTerrainField(sim, view, seed) {
     const d = Math.max(dx, dz);
     const w = (d <= 0 ? 1 : 1 - smoothstep(0, 30, d)) * (1 - Math.exp(-((z / 6) ** 2)));
     h = lerp(h, padH - 1.5, w);
+    // In front, never above the height that lands on the ground line in this
+    // point's screen column. The front is built to stay below it, but the
+    // pad's flattening (and the odd crater rim) can lift it where the line
+    // drops away beside the pad, hiding the line the player lands on.
+    if (z > 0) {
+      const k = D / (D - z);
+      h = Math.min(h, eye + (profile(xc + (x - xc) * k) - eye) / k);
+    }
     return [h, bright * fade];
   }
 

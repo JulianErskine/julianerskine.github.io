@@ -1,11 +1,12 @@
-// Lander page entry: input (keys or autopilot), environment seeds, the
+// Lander page entry: input (keys or an autopilot), environment seeds, the
 // fixed-step sim loop with variable-rate rendering, and the HUD.
 import { createSim, wrapAngle, STEP } from "./sim.js";
-import { createAutopilot } from "./autopilot.js";
+import { createPidAutopilot } from "./autopilot_pid.js";
+import { loadMpc, createMpcAutopilot } from "./autopilot_mpc.js";
 import { createVisuals } from "./visuals/scene.js";
 import { createPlots } from "./plots.js";
 
-const MODE_LABELS = { manual: "manual", pid: "PID" };
+const MODE_LABELS = { manual: "manual", pid: "PID", mpc: "MPC" };
 
 const deg = (rad) => ((wrapAngle(rad) * 180) / Math.PI).toFixed(0);
 
@@ -47,20 +48,43 @@ function start() {
     return;
   }
 
-  const autopilot = createAutopilot(sim);
+  // Autopilots by mode; manual has none. The MPC joins once its wasm solver
+  // has loaded, on first use.
+  const pilots = { pid: createPidAutopilot(sim) };
   const plots = createPlots(plotsEl, sim);
-  let mode = "manual"; // manual | pid
+  let mode = "manual"; // manual | pid | mpc
   let env = "random"; // random | fixed
   const keys = { left: false, right: false, up: false };
 
-  const showMode = toggleGroup("sim-pilot", (next) => {
+  function selectMode(next) {
     if (next === mode) return;
     mode = next;
-    autopilot.reset();
+    pilots[mode]?.reset();
     keys.left = keys.right = keys.up = false;
     showMode(mode);
     if (sim.state.status === "flying") plots.markMode(MODE_LABELS[mode]);
+  }
+  const showMode = toggleGroup("sim-pilot", (next) => {
+    if (next === "mpc" && !pilots.mpc) loadMpcPilot();
+    else selectMode(next);
   });
+
+  const mpcButton = document.querySelector('#sim-pilot [data-value="mpc"]');
+  async function loadMpcPilot() {
+    if (mpcButton.disabled) return;
+    mpcButton.disabled = true;
+    mpcButton.setAttribute("aria-busy", "true");
+    try {
+      pilots.mpc = createMpcAutopilot(sim, await loadMpc());
+      selectMode("mpc");
+    } catch (err) {
+      console.error(err);
+      mpcButton.textContent = "MPC (failed to load)";
+    } finally {
+      mpcButton.disabled = false;
+      mpcButton.removeAttribute("aria-busy");
+    }
+  }
   // Switching environment mode applies from the next restart: the round
   // being flown is already the seed in the box.
   const showEnv = toggleGroup("sim-env", (next) => {
@@ -79,7 +103,7 @@ function start() {
     const seed = env === "random" ? randomSeed() : seedFromInput();
     seedInput.value = seed;
     sim.reset(seed);
-    autopilot.reset();
+    for (const pilot of Object.values(pilots)) pilot.reset();
     plots.clear();
     if (mode !== "manual") plots.markMode(MODE_LABELS[mode]);
   }
@@ -129,9 +153,14 @@ function start() {
       ` · vx ${state.vx.toFixed(0)} vy ${(-state.vy).toFixed(0)}` +
       ` · tilt ${deg(state.angle)}°` +
       ` · fuel ${state.fuel.toFixed(0)}%`;
-    if (mode === "pid" && state.status === "flying") {
-      const t = autopilot.telemetry;
+    if (state.status === "flying" && mode === "pid") {
+      const t = pilots.pid.telemetry;
       text += ` · PID wants vx ${t.vxWanted.toFixed(0)} vy ${(-t.vyWanted).toFixed(0)} tilt ${deg(t.tiltWanted)}°`;
+    } else if (state.status === "flying" && mode === "mpc") {
+      const t = pilots.mpc.telemetry;
+      text += t.warmingUp
+        ? " · MPC warming up (engines off)"
+        : ` · MPC status ${t.status}, solve ${t.solveMs.toFixed(2)} ms, throttle ${(t.throttle * 100).toFixed(0)}%`;
     }
     statsEl.textContent = text;
     if (messageEl.textContent !== state.message) showMessage(state.message, state.status);
@@ -150,7 +179,7 @@ function start() {
       // Plots sample only rounds in flight, including the step that ends
       // one, so they hold still once it's over until the next restart.
       const flying = sim.state.status === "flying";
-      sim.step(STEP, mode === "pid" ? autopilot.update(STEP) : keys);
+      sim.step(STEP, pilots[mode] ? pilots[mode].update(STEP) : keys);
       if (flying) plots.record(STEP);
       pending -= STEP;
     }

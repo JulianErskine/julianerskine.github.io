@@ -51,7 +51,7 @@ export const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
 // The sim is stepped at this fixed dt: with the same seed and the same input
 // every step, a round plays out identically.
-export const STEP = 1 / 120; // s
+export const STEP = 1 / 200; // s; 200 Hz, so the MPC's 100 Hz is every 2 steps
 
 /**
  * A sim whose world and starting state come from `seed` (any 32-bit

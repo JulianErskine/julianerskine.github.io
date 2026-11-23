@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  # Runs on every push and PR. make build / make lint run in Docker
+  # Runs on every push and PR. make lint / make test run in Docker
   # (node:20-alpine) via the Makefile — see Makefile for the actual commands.
   check:
     runs-on: ubuntu-latest
@@ -19,6 +19,8 @@ jobs:
       - uses: actions/checkout@v6
       - name: Build + lint site
         run: make lint
+      - name: Test
+        run: make test
 
   # Runs after push to master, or when the CV repo's release workflow
   # fires a repository_dispatch (see julian-CV/.github/workflows/release.yml)

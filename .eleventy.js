@@ -2,8 +2,10 @@ module.exports = function (eleventyConfig) {
   // Static assets copied as-is.
   eleventyConfig.addPassthroughCopy("src/css");
   eleventyConfig.addPassthroughCopy("src/images");
-  // Only the scripts: docs kept next to them (README.md) stay out of the site.
+  // Scripts and their wasm only: docs kept next to them (README.md) stay out
+  // of the site.
   eleventyConfig.addPassthroughCopy("src/js/**/*.js");
+  eleventyConfig.addPassthroughCopy("src/js/**/*.wasm");
   // three.js for the simulator, served as plain ES modules (no bundler):
   // the core build plus the post-processing addons the page imports.
   eleventyConfig.addPassthroughCopy({
